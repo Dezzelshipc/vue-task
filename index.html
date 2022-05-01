@@ -24,7 +24,6 @@
 
         <!-- Theme JS -->
         <script src="../vue-task/assets/js/argon-design-system.js"></script>
-
     </head>
     <body style="height: 100vh; width: 100vw">
         <div class="container w-100 h-100">
@@ -38,16 +37,16 @@
         <button type="submit" id="file_save">save</button>
 
         <script>
-            //const render = require('./render.js')
             let saved
 
             if (localStorage.getItem('text_in_editor') !== null) {
-                $('#editor').html(localStorage.getItem('text_in_editor'))
+                console.log("loaded")
+                $('#editor').val(localStorage.getItem('text_in_editor'))
                 saved = 1
             }
 
             $('#editor').keydown(() => {
-                localStorage.setItem('text_in_editor', $('#editor').html());
+                localStorage.setItem('text_in_editor', $('#editor').val());
                 saved = 0
             })
 
@@ -57,39 +56,39 @@
                     return;
                 }
                 let reader = new FileReader();
-                reader.onload = function (e) {
-                    $("#editor").text(e.target.result)
+                reader.onload = (e) => {
+                    $("#editor").val(e.target.result)
                 }
                 reader.readAsText(file)
             })
 
             $('#file_save').click(() => {
-                
+                saveFile();
             })
 
             $(":root").keydown((e) => {
                 if (e.ctrlKey && e.key === 's') {
-                    e.preventDefault();
-                    // Place your code here
-                    console.log('CTRL + S');
+                    e.preventDefault()
+                    saveFile();
                 }
             })
 
-            function addRecentFiles(file) {
-                let recent = localStorage.getItem("recent_files")
-                if (file in recent) {
-                    if (recent[0] !== file) {
-                        recent = recent.splice(recent.indexOf(file)).unshift(file);
-                    }
-                } else {
-                    if (recent.length == 5) {
-                        recent = recent.pop()
-                    }
-                    recent = recent.unshift(file)
+            function saveFile() {
+                saved = 1
+                let file = $("#file_file")[0].files[0]
+                if (!file) {
+                    return;
                 }
-                localStorage.setItem("recent_files", recent);
+
+                try {
+                    fs.writeFileSync(file.path, $('#editor').val(), 'utf-8')
+                }
+                catch(e) {
+                    alert('Failed to save the file !')
+                    console.error(e);
+                }
             }
-            
+
         </script>
     </body>
 </html>
