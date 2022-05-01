@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Vue Electron</title>
+        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+        <!-- Fonts -->
+        <link href="https://fonts.googleapis.com/css?family=Poppins:200,300,400,600,700,800" rel="stylesheet">
+
+        <!-- Icons -->
+        <link href="../vue-task/assets/css/nucleo-icons.css" rel="stylesheet">
+        <link href="https://use.fontawesome.com/releases/v5.0.6/css/all.css" rel="stylesheet">
+
+        <!-- Theme CSS -->
+        <link type="text/css" href="../vue-task/assets/css/argon-design-system.min.css" rel="stylesheet">
+
+        <!-- Core -->
+        <script src="../vue-task/assets/js/core/jquery.min.js"></script>
+        <script src="../vue-task/assets/js/core/popper.min.js"></script>
+        <script src="../vue-task/assets/js/core/bootstrap.min.js"></script>
+
+        <!-- Theme JS -->
+        <script src="../vue-task/assets/js/argon-design-system.js"></script>
+
+    </head>
+    <body style="height: 100vh; width: 100vw">
+        <div class="container w-100 h-100">
+        <h1 class="w-100 text-center">Hello World!</h1>
+
+        <textarea id="editor" contenteditable="true" style="height: 50%; width: 100%; border: solid; border-width: 1px; text-align: left">
+        </textarea>
+        
+        <input type="file" id="file_file" accept=".txt"></input>
+        <button type="submit" id="file_load">load</button>
+        <button type="submit" id="file_save">save</button>
+
+        <script>
+            //const render = require('./render.js')
+            let saved
+
+            if (localStorage.getItem('text_in_editor') !== null) {
+                $('#editor').html(localStorage.getItem('text_in_editor'))
+                saved = 1
+            }
+
+            $('#editor').keydown(() => {
+                localStorage.setItem('text_in_editor', $('#editor').html());
+                saved = 0
+            })
+
+            $("#file_load").click(()=>{
+                let file = $("#file_file")[0].files[0];
+                if (!file) {
+                    return;
+                }
+                let reader = new FileReader();
+                reader.onload = function (e) {
+                    $("#editor").text(e.target.result)
+                }
+                reader.readAsText(file)
+            })
+
+            $('#file_save').click(() => {
+                
+            })
+
+            $(":root").keydown((e) => {
+                if (e.ctrlKey && e.key === 's') {
+                    e.preventDefault();
+                    // Place your code here
+                    console.log('CTRL + S');
+                }
+            })
+
+            function addRecentFiles(file) {
+                let recent = localStorage.getItem("recent_files")
+                if (file in recent) {
+                    if (recent[0] !== file) {
+                        recent = recent.splice(recent.indexOf(file)).unshift(file);
+                    }
+                } else {
+                    if (recent.length == 5) {
+                        recent = recent.pop()
+                    }
+                    recent = recent.unshift(file)
+                }
+                localStorage.setItem("recent_files", recent);
+            }
+            
+        </script>
+    </body>
+</html>
