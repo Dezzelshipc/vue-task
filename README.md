@@ -1,4 +1,4 @@
-# vue-task
+# Explorer vue - electron
 
 ## Download compiled installer
 https://disk.yandex.ru/d/ryN0Q-CHEDy3Fw
@@ -19,4 +19,4 @@ npm run electron:build
 ```
 
 ##### Go to Web-projects page
-https://dezzelshipc.tk 
+https://dezzelshipc.ml
