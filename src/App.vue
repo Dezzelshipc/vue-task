@@ -101,7 +101,7 @@ export default {
   data() {
     return {
       discsFolder: true,
-      path: ref(app.getAppPath()),
+      path: ref(pathModule.dirname(pathModule.dirname(app.getAppPath()))),
       searchString: ref(''),
       checked: ref(false),
       autoClear: ref(true),

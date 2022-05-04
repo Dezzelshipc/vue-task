@@ -1,9 +1,24 @@
-const { defineConfig } = require('@vue/cli-service')
-module.exports = defineConfig({
+// const { defineConfig } = require('@vue/cli-service')
+module.exports = {
   transpileDependencies: true,
   pluginOptions: {
     electronBuilder: {
-      nodeIntegration: true
+      nodeIntegration: true,
+      builderOptions: {
+        win: {
+          appId: "vue-task",
+          target: "NSIS",
+          icon: "./public/folder.png",
+        },
+        nsis: {
+          installerIcon: "./public/folder.ico",
+          uninstallerIcon: "./public/folder.ico",
+          uninstallDisplayName: "vue-task uninstaller",
+          oneClick: false,
+          allowToChangeInstallationDirectory: true,
+        },
+        productName: "Rerolpxe",
+      }
     }
   }
-})
+}
