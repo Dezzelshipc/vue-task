@@ -1,5 +1,5 @@
 <template>
-    <i class="bi bi-file-excel" :style="'font-size:'+fontsize+'px'"></i>
+    <i class="bi bi-hdd" :style="'font-size:'+fontsize+'px'"></i>
 </template>
 
 <script>

@@ -1,6 +1,6 @@
 <template>
-  <h4>
-    <table class="overflow-auto">
+  <h4 style="height: 40px">
+    <table class="overflow-auto" v-if="!showPath">
       <tbody>
         <tr>
           <td
@@ -19,18 +19,18 @@
         </tr>
       </tbody>
     </table>
+    <div v-else class="p-2 ps-0">
+      {{ discsfolder ? path : "This PC" }}
+    </div>
   </h4>
 </template>
 
 <script>
 export default {
     props: {
-      path: {
-        type: String
-      },
-      discsfolder: {
-        type: Boolean
-      }
+      path: String,
+      discsfolder: Boolean,
+      showPath: Boolean
     },
     methods: {
       goPath(index) {

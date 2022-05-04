@@ -3,6 +3,7 @@
     <PathViewer
       :path="path"
       :discsfolder="discsFolder"
+      :showPath="showPath"
       @applyPath="applyPath($event)"
     />
 
@@ -10,13 +11,26 @@
       <input
         type="checkbox"
         class="form-check-input"
-        id="checkBytes"
-        v-model="checked"
+        id="squareIcons"
+        v-model="squareIcons"
       />
-      <label class="form-chack-label" for="checkBytes">
-        In Bytes
+      <label class="form-chack-label" for="squareIcons">
+        Square Icons
       </label>
     </div>
+
+    <div class="form-check m-3 d-inline-block">
+      <input
+        type="checkbox"
+        class="form-check-input"
+        id="showPath"
+        v-model="showPath"
+      />
+      <label class="form-chack-label" for="showPath">
+        Show Path
+      </label>
+    </div>
+
     <div class="form-check m-3 d-inline-block">
       <input
         type="checkbox"
@@ -29,6 +43,19 @@
         Auto Clear
       </label>
     </div>
+
+    <div class="form-check m-3 d-inline-block">
+      <input
+        type="checkbox"
+        class="form-check-input"
+        id="checkBytes"
+        v-model="checked"
+      />
+      <label class="form-chack-label" for="checkBytes">
+        In Bytes
+      </label>
+    </div>
+
     <div class="form-group mt-2 mb-2">
       <input
         v-model="searchString"
@@ -39,13 +66,15 @@
     <FilesViewer
       :files="filteredFiles"
       :checked="checked"
+      :squareIcons="squareIcons"
       @back="back"
       @folderclick="open($event.name)"
       v-if="discsFolder"
     />
     <DisksViewer
       v-else
-      :discs="filteredDiscs"
+      :discs="filteredDiscs()"
+      :squareIcons="squareIcons"
       @folderclick="openNew($event)"
     />
   </div>
@@ -75,9 +104,10 @@ export default {
       path: ref(app.getAppPath()),
       searchString: ref(''),
       checked: ref(false),
-      discs: ref(window.discs),
       autoClear: ref(true),
       loading: ref(false),
+      squareIcons: ref(false),
+      showPath: ref(false)
     }
   },
   setup() {
@@ -92,6 +122,7 @@ export default {
       this.upd()
       if (this.path == pathModule.dirname(this.path)) {
         this.discsFolder = false
+        this.getDiscs()
       }
       this.path = pathModule.dirname(this.path)
     },
@@ -101,6 +132,7 @@ export default {
     },
     openNew(folder) {
       this.upd()
+      this.getDiscs()
       this.path = pathModule.join(folder)
       this.discsFolder = true
     },
@@ -108,14 +140,28 @@ export default {
       if (this.autoClear) {
         this.searchString = ""
       }
-      this.discs = window.discs
     },
     applyPath(path) {
       if (path !== '\\') {
         this.path = path
       } else {
+        this.getDiscs()
         this.discsFolder = false
       }
+    },
+    getDiscs() {
+      child.exec('wmic logicaldisk get name', (error, stdout) => {
+        window.discs = stdout.split('\r\r\n')
+            .filter(value => /[A-Za-z]:/.test(value))
+            .map(value => (value.trim()+"\\"))
+        })
+    },
+    filteredDiscs() {
+      const discs = window.discs
+      const searchString = this.searchString
+      return searchString
+        ? discs.filter(s => s.toLowerCase().includes(searchString.toLowerCase()))
+        : discs
     }
   },
   computed: {
@@ -163,13 +209,7 @@ export default {
         ? files.filter(s => s.name.toLowerCase().includes(searchString.toLowerCase()))
         : files
     },
-    filteredDiscs() {
-      const discs =  window.discs
-      const searchString = this.searchString
-      return searchString
-        ? discs.filter(s => s.toLowerCase().includes(searchString.toLowerCase()))
-        : discs
-    }
+    
   }
 }
 </script>

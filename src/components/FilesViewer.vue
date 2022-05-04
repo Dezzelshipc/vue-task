@@ -1,5 +1,5 @@
 <template>
-  <table class="table">
+  <table class="table" v-if="!squareIcons">
     <tbody>
       <tr class="clickable open" @click="$emit('back')">
         <td class="icon-row align-middle text-center">
@@ -9,11 +9,11 @@
         <td></td>
       </tr>
       <tr
-        class="open"
+        class="open clickable"
         v-for="file in files"
         :key="file.name"
-        :class="{ clickable: file.directory }"
         @click="onFileClick(file)"
+        :title="file.name"
       >
         <td class="icon-row p-1 text-center">
           <IconFolder v-if="file.directory" class="icon-folder" />
@@ -27,6 +27,51 @@
       </tr>
     </tbody>
   </table>
+
+  <div v-else>
+    <div
+      class="clickable d-inline-flex btn btn-outline-secondary m-1 p-0"
+      @click="$emit('back')"
+      style="width: 100px; height: 100px"
+    >
+      <table class="w-100 h-100">
+        <tr>
+          <td>
+            <IconFolderOpen class="icon-folder" :fontsize="40" />
+          </td>
+        </tr>
+        <tr>
+          <td>
+            ...
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div
+      class="clickable d-inline-flex btn btn-outline-secondary m-1 p-0"
+      :class="{ 'btn-outline-secondary' : !file.error, 'btn-outline-danger' : file.error }"
+      v-for="file in files"
+      :key="file.name"
+      @click="onFileClick(file)"
+      style="width: 100px; height: 100px;"
+      :title="title(file, file.size)"
+    >
+      <table class="w-100 h-100 align-middle text-center">
+        <tr>
+          <td>
+            <IconFolder v-if="file.directory" class="icon-folder" :fontsize="40" />
+            <IconFile v-else-if="!file.error" class="icon-file" :extension="getExt(file)" :fontsize="40" />
+            <IconFileError v-else class="icon-file" :fontsize="40" />
+          </td>
+        </tr>
+        <tr>
+          <td class="text-truncate" style="max-width: 100px">
+            {{ file.name }}
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -44,9 +89,13 @@ export default {
           type: Array,
           default: () => []
       },
-      checked: { 
-        type: Boolean,
-      },
+      checked:  Boolean,
+      squareIcons: Boolean,
+  },
+  data() {
+    return {
+      hoverFile: null,
+    }
   },
   components: {
       IconFile,
@@ -85,6 +134,12 @@ export default {
     getExt(file) {
       return pathModule.extname(file.name)
     },
+    title(file, size) {
+      if (size) {
+        return `${file.name}\n${this.fileSize(file, this.checked)}`
+      }
+      return file.name
+    }
   }
 }
 </script>
