@@ -1,7 +1,10 @@
 <template>
   <div class="container mt-2">
-    <h4>{{ discsFolder ? path : "Local Discs" }}</h4>
-    {{ scrollable }}
+    <PathViewer
+      :path="path"
+      :discsfolder="discsFolder"
+      @applyPath="applyPath($event)"
+    />
 
     <div class="form-check m-3 ms-0 d-inline-block">
       <input
@@ -38,7 +41,6 @@
       :checked="checked"
       @back="back"
       @folderclick="open($event.name)"
-      @ended="upd"
       v-if="discsFolder"
     />
     <DisksViewer
@@ -50,7 +52,6 @@
 </template>
 
 <script>
-const $ = require('jquery')
 import fs from 'fs'
 import pathModule from 'path'
 import child from 'child_process'
@@ -60,11 +61,13 @@ import { ref } from 'vue'
 
 import FilesViewer from './components/FilesViewer.vue'
 import DisksViewer from './components/DisksViewer.vue'
+import PathViewer from './components/PathViewer.vue'
 
 export default {
   components: {
     FilesViewer,
-    DisksViewer
+    DisksViewer,
+    PathViewer,
   },
   data() {
     return {
@@ -74,7 +77,7 @@ export default {
       checked: ref(false),
       discs: ref(window.discs),
       autoClear: ref(true),
-      scrollable: false
+      loading: ref(false),
     }
   },
   setup() {
@@ -86,28 +89,33 @@ export default {
   },
   methods: {
     back() {
+      this.upd()
       if (this.path == pathModule.dirname(this.path)) {
         this.discsFolder = false
       }
       this.path = pathModule.dirname(this.path)
-      this.upd()
     },
     open(folder) {
-      this.path = pathModule.join(this.path, folder)
       this.upd()
+      this.path = pathModule.join(this.path, folder)
     },
     openNew(folder) {
+      this.upd()
       this.path = pathModule.join(folder)
       this.discsFolder = true
-      this.upd()
     },
     upd() {
       if (this.autoClear) {
         this.searchString = ""
       }
       this.discs = window.discs
-      this.scrollable = $(document).height() > $(window).height()
-      console.log("upd")
+    },
+    applyPath(path) {
+      if (path !== '\\') {
+        this.path = path
+      } else {
+        this.discsFolder = false
+      }
     }
   },
   computed: {

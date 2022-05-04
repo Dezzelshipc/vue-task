@@ -10,7 +10,7 @@
       </tr>
       <tr
         class="open"
-        v-for="(file) in files"
+        v-for="file in files"
         :key="file.name"
         :class="{ clickable: file.directory }"
         @click="onFileClick(file)"
@@ -46,7 +46,7 @@ export default {
       },
       checked: { 
         type: Boolean,
-      }
+      },
   },
   components: {
       IconFile,
@@ -84,7 +84,7 @@ export default {
     },
     getExt(file) {
       return pathModule.extname(file.name)
-    }
+    },
   }
 }
 </script>

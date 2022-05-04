@@ -11,7 +11,7 @@
         <td class="icon-row">
           <IconFolderOpen class="icon-folder" />
         </td>
-        <td class="w-100">{{ disc }}</td>
+        <td class="w-100  align-middle">{{ disc }}</td>
       </tr>
     </tbody>
   </table>
