@@ -10,7 +10,7 @@
             <div
               class="d-flex align-middle btn-secondary btn"
               style="white-space: nowrap"
-              @click="goPath(p, index)"
+              @click="goPath(index)"
             >
               {{ p }}
               <i class="bi bi-caret-right-fill" v-if="index !== customPath.length - 1"></i>
