@@ -14,6 +14,7 @@
         :key="file.name"
         @click="onFileClick(file)"
         :title="file.name"
+        @contextmenu="conextMenu(file, $event)"
       >
         <td class="icon-row p-1 text-center">
           <IconFolder v-if="file.directory" class="icon-folder" />
@@ -75,8 +76,11 @@
 </template>
 
 <script>
+import fs from 'fs'
 import pathModule from 'path'
-import { shell } from 'electron';
+import { shell } from 'electron'
+import { Menu, BrowserWindow, dialog } from '@electron/remote'
+import { ref } from 'vue'
 
 import IconFile from './IconFile.vue'
 import IconFolder from './IconFolder.vue'
@@ -84,6 +88,11 @@ import IconFolderOpen from './IconFolderOpen.vue'
 import IconFileError from './IconFileError.vue'
 
 export default {
+  emits: [
+    'back',
+    'folderclick',
+    'changed'
+  ],
   props: {
       files: {
           type: Array,
@@ -92,16 +101,11 @@ export default {
       checked:  Boolean,
       squareIcons: Boolean,
   },
-  data() {
-    return {
-      hoverFile: null,
-    }
-  },
   components: {
       IconFile,
       IconFolder,
       IconFolderOpen,
-      IconFileError
+      IconFileError,
   },
   methods: {
     fileSize({size}, checked) {
@@ -139,7 +143,85 @@ export default {
         return `${file.name}\n${this.fileSize(file, this.checked)}`
       }
       return file.name
-    }
+    },
+    conextMenu(file, event) {
+      event.preventDefault()
+
+      const template = ref([
+        {
+          label: 'Delete',
+          click: () => {
+            if (file.directory) {
+              this.deleteDir(file)
+            } else {
+              this.deleteFile(file)
+            }
+          }
+        }
+      ])
+
+      const menu = Menu.buildFromTemplate(template.value)
+      menu.popup(BrowserWindow.getFocusedWindow())
+    },
+    deleteDir(file) {
+      try {
+        if (file.name === "")
+          return
+        
+        let slashes = ''
+        if (!file.path.endsWith(pathModule.sep)) {
+          slashes = pathModule.sep
+        }
+
+        if(fs.existsSync(file.path + slashes + file.name)) {
+          const conf = dialog.showMessageBoxSync({
+            message: `Are you sure you want to delete this folder and files in it? (${file.path + slashes + file.name})`,
+            buttons: [ "&OK", "&Cancel"],
+            normalizeAccessKeys: true,
+            title: "Delete folder?"
+          }) // ok - 0; cancel - 1
+          if (conf) {
+            return
+          }
+          fs.rmdirSync(file.path + slashes + file.name, { recursive: true })
+          this.$emit('changed')
+        } else {
+          console.log(file.path + slashes + file.name)
+          dialog.showMessageBox({ title: "Error", message: "Folder not exists!" })
+        }
+      } catch (err) {
+        console.log(err)
+        dialog.showErrorBox("Error", "Folder deletiting error!\n" + err)
+      }
+    },
+    deleteFile(file) {
+      try {
+        if (file.name === "")
+          return
+
+        let slashes = ''
+        if (!file.path.endsWith(pathModule.sep)) {
+          slashes = pathModule.sep
+        }
+
+        if(fs.existsSync(file.path + slashes + file.name)) {
+          const conf = dialog.showMessageBoxSync({
+            message: `Are you sure you want to delete this file? (${file.path + slashes + file.name})`,
+            buttons: [ "&OK", "&Cancel"],
+            normalizeAccessKeys: true,
+            title: "Delete file?"
+          }) // ok - 0; cancel - 1
+          if (conf) {
+            return
+          }
+          fs.unlinkSync(file.path + slashes + file.name)
+          this.$emit('changed')
+        }
+      } catch (err) {
+        console.log(err)
+        dialog.showErrorBox("Error", "File deleting error!\n" + err)
+      }
+    },
   }
 }
 </script>

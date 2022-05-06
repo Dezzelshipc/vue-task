@@ -1,5 +1,14 @@
 <template>
-  <div class="container mt-2">
+  {{ menuCreate() }}
+  {{ getDiscs() }}
+  <div
+    class="container mt-2"
+    @drop="dropFile($event)"
+    @dragover="$event.preventDefault()"
+    @dragleave="$event.preventDefault()"
+    @dragend="$event.preventDefault()"
+    dropzone="true"
+  >
 
     <PathViewer
       :path="path"
@@ -7,7 +16,7 @@
       :showPath="showPath"
       @applyPath="applyPath($event)"
     />
-
+    
     <div>
       <button type="button" class="btn btn-outline-secondary d-inline-block clickable p-1 me-1" @click="backMemory()" :disabled="!memory.backward">
         <svg class="bi" width="32" height="32" fill="currentColor">
@@ -27,7 +36,7 @@
       @changed="updPath"
     />
 
-    <div>
+    <div v-if="showCheckboxes">
       <div class="form-check m-3 ms-0 d-inline-block">
         <input
           type="checkbox"
@@ -57,7 +66,7 @@
           type="checkbox"
           class="form-check-input"
           id="checkBytes"
-          v-model="checked"
+          v-model="inBytes"
         />
         <label class="form-chack-label" for="checkBytes">
           In Bytes
@@ -101,10 +110,11 @@
     </div>
     <FilesViewer
       :files="filteredFiles"
-      :checked="checked"
+      :checked="inBytes"
       :squareIcons="squareIcons"
       @back="back"
       @folderclick="open($event.name)"
+      @changed="updPath"
       v-if="discsFolder"
     />
     <DisksViewer
@@ -121,7 +131,7 @@ import fs from 'fs'
 import pathModule from 'path'
 import child from 'child_process'
 
-import { app } from '@electron/remote'
+import { app, Menu, shell } from '@electron/remote'
 import { ref } from 'vue'
 
 import FilesViewer from './components/FilesViewer.vue'
@@ -141,12 +151,12 @@ export default {
       discsFolder: ref(true),
       path: ref(pathModule.dirname(pathModule.dirname(app.getAppPath()))),
       searchString: ref(''),
-      checked: ref(false),
+      inBytes: ref(false),
       autoClear: ref(true),
       autoClose: ref(true),
-      loading: ref(false),
       squareIcons: ref(false),
       showPath: ref(false),
+      showCheckboxes: ref(false),
       memory: {
         arr: ref([]),
         index: ref(0),
@@ -154,16 +164,7 @@ export default {
         forward: ref(false),
         backward: ref(false)
       },
-    }
-  },
-  setup() {
-    const discs = child.execSync('wmic logicaldisk get name').toString('utf8')
-      .split('\r\r\n')
-      .filter(value => /[A-Za-z]:/.test(value))
-      .map(value => (value.trim()+"\\"))
-
-    return {
-      discs
+      discs: ref([])
     }
   },
   methods: {
@@ -191,7 +192,7 @@ export default {
       if (this.autoClear) {
         this.searchString = ""
       }
-      if (path !== '\\') {
+      if (path !== pathModule.sep) {
         this.makeMemory()
         this.path = path
       } else {
@@ -214,7 +215,7 @@ export default {
       this.discs = child.execSync('wmic logicaldisk get name').toString('utf8')
         .split('\r\r\n')
         .filter(value => /[A-Za-z]:/.test(value))
-        .map(value => (value.trim()+"\\"))
+        .map(value => (value.trim() + pathModule.sep))
     },
     filteredDiscs() {
       const discs = this.discs
@@ -258,6 +259,160 @@ export default {
         this.memory.forward = false
         this.memory.isBack = false
       }
+    },
+    menuCreate() {
+      const isMac = process.platform === 'darwin'
+
+      const template = [
+        // { role: 'appMenu' }
+        ...(isMac ? [{
+          label: app.name,
+          submenu: [
+            { role: 'about' },
+            { type: 'separator' },
+            { role: 'services' },
+            { type: 'separator' },
+            { role: 'hide' },
+            { role: 'hideOthers' },
+            { role: 'unhide' },
+            { type: 'separator' },
+            { role: 'quit' }
+          ]
+        }] : []),
+        // { role: 'fileMenu' }
+        {
+          label: 'File',
+          submenu: [
+            isMac ? { role: 'close' } : { role: 'quit' }
+          ]
+        },      
+        // { role: 'viewMenu' }
+        {
+          label: 'View',
+          submenu: [
+            { role: 'reload' },
+            { role: 'forceReload' },
+            { role: 'toggleDevTools' },
+            { type: 'separator' },
+            { role: 'resetZoom' },
+            { role: 'zoomIn' },
+            { role: 'zoomOut' },
+            { type: 'separator' },
+            { role: 'togglefullscreen' }
+          ]
+        },
+        // { role: 'windowMenu' }
+        {
+          label: 'Window',
+          submenu: [
+            { role: 'minimize' },
+            { role: 'zoom' },
+            ...(isMac ? [
+              { type: 'separator' },
+              { role: 'front' },
+              { type: 'separator' },
+              { role: 'window' }
+            ] : [
+              { role: 'close' }
+            ])
+          ]
+        },
+        {
+          label: 'Settings',
+          submenu: [
+            {
+              label: 'Square Icons',
+              type: 'checkbox',
+              checked: this.squareIcons,
+              click: async (e) => {
+                this.squareIcons = e.checked
+              }
+            },
+            {
+              label: 'Show Path',
+              type: 'checkbox',
+              checked: this.showPath,
+              click: async (e) => {
+                this.showPath = e.checked
+              }
+            },
+            {
+              label: 'In Bytes',
+              type: 'checkbox',
+              checked: this.inBytes,
+              click: async (e) => {
+                this.inBytes = e.checked
+              }
+            },
+            {
+              label: 'Search Auto Clear',
+              type: 'checkbox',
+              checked: this.autoClear,
+              click: async (e) => {
+                this.autoClear = e.checked
+              }
+            },
+            {
+              label: 'Add+Delete Auto Close Input',
+              type: 'checkbox',
+              checked: this.autoClose,
+              click: async (e) => {
+                this.autoClose = e.checked
+              }
+            },
+            { type:'separator' },
+            {
+              label: 'Show Checkboxes',
+              type: 'checkbox',
+              checked: this.showCheckboxes,
+              click: async (e) => {
+                this.showCheckboxes = e.checked
+              }
+            },
+          ]
+        },
+        {
+          role: 'help',
+          submenu: [
+            {
+              label: 'Learn More Electron',
+              click: async () => {
+                await shell.openExternal('https://electronjs.org')
+              }
+            },
+            {
+              label: 'Project\'s Github',
+              click: async () => {
+                await shell.openExternal('https://github.com/Dezzelshipc/vue-task')
+              }
+            }
+          ]
+        }
+      ]
+
+      const menu = Menu.buildFromTemplate(template)
+      Menu.setApplicationMenu(menu)
+    },
+    dropFile(e) {
+      e.preventDefault();
+
+      let slashes = ''
+      if (!this.path.endsWith(pathModule.sep)) {
+        slashes = pathModule.sep
+      }
+
+      for (let f of e.dataTransfer.files) {
+        console.log(f.path, this.path + slashes + f.name)
+        try {
+          fs.copyFileSync(f.path, this.path + slashes + f.name)
+          fs.unlinkSync(f.path)
+          this.updPath()
+        } catch (err) {
+          console.log(err)
+        }
+      }
+      
+      return false;
     }
   },
   computed: {

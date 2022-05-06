@@ -25,6 +25,8 @@
 </template>
 
 <script>
+import pathModule from 'path'
+
 export default {
   props: {
     path: String,
@@ -33,10 +35,7 @@ export default {
   },
   methods: {
     goPath(index) {
-      if (this.path.includes('\\'))
-        this.$emit('applyPath', this.path.split('\\').slice(0,index).join('\\')+'\\')
-      else 
-        this.$emit('applyPath', this.path.split('/').slice(0,index).join('/')+'/')
+      this.$emit('applyPath', this.path.split(pathModule.sep).slice(0,index).join(pathModule.sep) + pathModule.sep)
     }
   },
   computed: {
@@ -45,13 +44,8 @@ export default {
         return ['This PC']
       }
 
-      if (this.path.includes('\\')) {
-        const newPath = "This PC\\"+this.path
-        return newPath.split('\\').filter(x => x !== "");
-      } else {
-        const newPath = "This PC/"+this.path
-        return newPath.split('/').filter(x => x !== "");
-      }
+      const newPath = "This PC" + pathModule.sep + this.path
+      return newPath.split(pathModule.sep).filter(x => x !== "")
     }
   }
 }

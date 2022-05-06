@@ -54,7 +54,8 @@
         <svg class="bi" width="24" height="24" fill="currentColor">
           <use xlink:href="../assets/bootstrap-icons.svg#file-earmark-plus"/>
         </svg>
-        Create File
+        <span v-if="!typingFile" class="ms-1 mt-0">Create File</span>
+        <span v-else class="ms-1">Close Input</span>
       </button>
 
       <input
@@ -74,7 +75,8 @@
         <svg class="bi" width="24" height="24" fill="currentColor">
           <use xlink:href="../assets/bootstrap-icons.svg#file-earmark-x"/>
         </svg>
-        Delete File
+        <span v-if="!typingDelFile" class="ms-1 mt-0">Delete File</span>
+        <span v-else class="ms-1">Close Input</span>
       </button>
 
       <input
@@ -91,12 +93,16 @@
 
 <script>
 import fs from 'fs'
+import pathModule from 'path'
 
 import { ref } from 'vue'
 import { dialog } from '@electron/remote'
 
 export default {
-  emits: ["changed"],
+  emits: [
+    "changed",
+    "dragFilesOut",
+  ],
   data() {
     return {
       folderName: ref(''),
@@ -120,8 +126,8 @@ export default {
           return
         
         let slashes = ''
-        if (!this.path.endsWith('\\')) {
-          slashes = '\\'
+        if (!this.path.endsWith(pathModule.sep)) {
+          slashes = pathModule.sep
         }
         if(!fs.existsSync(this.path + slashes + this.folderName)) {
           fs.mkdirSync(this.path + slashes + this.folderName)
@@ -141,8 +147,8 @@ export default {
           return
         
         let slashes = ''
-        if (!this.path.endsWith('\\')) {
-          slashes = '\\'
+        if (!this.path.endsWith(pathModule.sep)) {
+          slashes = pathModule.sep
         }
         if(fs.existsSync(this.path + slashes + this.deleteFolder)) {
           const conf = dialog.showMessageBoxSync({
@@ -172,8 +178,8 @@ export default {
           return
 
         let slashes = ''
-        if (!this.path.endsWith('\\')) {
-          slashes = '\\'
+        if (!this.path.endsWith(pathModule.sep)) {
+          slashes = pathModule.sep
         }
 
         fs.appendFileSync(this.path + slashes + this.fileName, "")
@@ -190,8 +196,8 @@ export default {
           return
 
         let slashes = ''
-        if (!this.path.endsWith('\\')) {
-          slashes = '\\'
+        if (!this.path.endsWith(pathModule.sep)) {
+          slashes = pathModule.sep
         }
 
         if(fs.existsSync(this.path + slashes + this.deleteFolder)) {
@@ -212,7 +218,7 @@ export default {
         console.log(err)
         dialog.showErrorBox("Error", "File deleting error!\n" + err)
       }
-    }
+    },
   }
 }
 </script>
