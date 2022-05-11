@@ -7,7 +7,6 @@
 <script>
 export default {
   props: {
-    extension: String,
     fontsize: {
       type: Number,
       default: () => 24,

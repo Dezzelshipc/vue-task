@@ -41,21 +41,24 @@
 import IconDisc from './IconDisc.vue'
 
 export default {
-    components: {
-      IconDisc,
-    },
-    props: {
-        discs: {
-            type: Array,
-            default: () => []
-        },
-        squareIcons: Boolean,
-    },
-    methods: {
-      onFileClick(disc) {
-        this.$emit('folderclick', disc)
-      }
+  emits: [
+    'folderclick',
+  ],
+  components: {
+    IconDisc,
+  },
+  props: {
+      discs: {
+          type: Array,
+          default: () => []
+      },
+      squareIcons: Boolean,
+  },
+  methods: {
+    onFileClick(disc) {
+      this.$emit('folderclick', disc)
     }
+  }
 }
 </script>
 

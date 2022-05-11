@@ -95,7 +95,7 @@
           checked
         />
         <label class="form-chack-label" for="autoClose">
-          Auto Close
+          Auto Close Inputs
         </label>
       </div>
 

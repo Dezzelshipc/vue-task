@@ -56,6 +56,7 @@
       @click="onFileClick(file)"
       style="width: 100px; height: 100px;"
       :title="title(file, file.size)"
+      @contextmenu="conextMenu(file, $event)"
     >
       <table class="w-100 h-100 align-middle text-center">
         <tr>

@@ -28,6 +28,9 @@
 import pathModule from 'path'
 
 export default {
+  emits: [
+    'applyPath',
+  ],
   props: {
     path: String,
     discsfolder: Boolean,
